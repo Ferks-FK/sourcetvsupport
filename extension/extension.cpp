@@ -869,7 +869,7 @@ void SMExtension::Handler_CServerGameEnts_CheckTransmit(CCheckTransmitInfo* pInf
 		return;
 	}
 
-	if (g_pHLTVServer != NULL && g_pHLTVServer->GetNumClients() == 0) {
+	if (g_pHLTVServer != NULL && static_cast<IServer*>(g_pHLTVServer)->GetNumClients() == 0) {
 		return;
 	}
 
