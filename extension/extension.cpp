@@ -24,6 +24,8 @@ CGlobalVars* gpGlobals = NULL;
 
 IServer* g_pGameIServer = NULL;
 
+static edict_t* s_pCachedSourceTVEdict = NULL;
+
 int CBasePlayer::sendprop_m_fFlags = 0;
 int CBaseServer::offset_stringTableCRC = 0;
 int CBaseServer::vtblindex_GetChallengeNr = 0;
@@ -161,6 +163,10 @@ DETOUR_DECL_MEMBER1(Handler_CBaseAbility__ShouldTransmit, int, const CCheckTrans
 		return iRetVal;
 	}
 
+	if (s_pCachedSourceTVEdict != NULL && pInfo->m_pClientEnt == s_pCachedSourceTVEdict) {
+		return FL_EDICT_ALWAYS;
+	}
+
 	IGamePlayer* pPlayer = playerhelpers->GetGamePlayer(pInfo->m_pClientEnt);
 	if (pPlayer == NULL) {
 		return iRetVal;
@@ -171,8 +177,8 @@ DETOUR_DECL_MEMBER1(Handler_CBaseAbility__ShouldTransmit, int, const CCheckTrans
 		return iRetVal;
 	}
 
-	/* We send to spectators and SourceTV */
-	if (pPlayer->IsSourceTV() || pPInfo->GetTeamIndex() == TEAM_SPECTATOR) {
+	/* We send to spectators */
+	if (pPInfo->GetTeamIndex() == TEAM_SPECTATOR) {
 		return FL_EDICT_ALWAYS;
 	}
 
@@ -639,6 +645,8 @@ void SMExtension::OnGameServer_Shutdown()
 
 void SMExtension::OnSetHLTVServer(IHLTVServer* pIHLTVServer)
 {
+	s_pCachedSourceTVEdict = NULL;
+
 	SH_REMOVE_HOOK_ID(CHLTVServer::shookid_ReplyChallenge);
 	CHLTVServer::shookid_ReplyChallenge = 0;
 
@@ -701,6 +709,7 @@ void SMExtension::OnSetHLTVServer(IHLTVServer* pIHLTVServer)
 	if (pPlayer != NULL && pPlayer->IsHLTV()) {
 		pPlayer->AddFlag(FL_FAKECLIENT);
 		pPlayer->ChangeTeam(TEAM_SPECTATOR);
+		s_pCachedSourceTVEdict = gamehelpers->EdictOfIndex(pIHLTVServer->GetHLTVSlot() + 1);
 	}
 
 	// bug#1: stringTableCRC are not set in CHLTVServer::StartMaster
@@ -857,6 +866,10 @@ void SMExtension::Handler_CServerGameEnts_CheckTransmit(CCheckTransmitInfo* pInf
 	}
 
 	if (!pRecipientPlayer->IsSourceTV()) {
+		return;
+	}
+
+	if (g_pHLTVServer != NULL && g_pHLTVServer->GetNumClients() == 0) {
 		return;
 	}
 
