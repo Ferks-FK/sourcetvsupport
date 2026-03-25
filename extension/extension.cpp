@@ -858,20 +858,15 @@ void SMExtension::Handler_CHLTVServer_FillServerInfo(SVC_ServerInfo& serverinfo)
 
 void SMExtension::Handler_CServerGameEnts_CheckTransmit(CCheckTransmitInfo* pInfo, const unsigned short* pEdictIndices, int nEdicts)
 {
-	SET_META_RESULT(MRES_OVERRIDE);
+    SET_META_RESULT(MRES_OVERRIDE);
 
-	IGamePlayer* pRecipientPlayer = playerhelpers->GetGamePlayer(pInfo->m_pClientEnt);
-	if (pRecipientPlayer == NULL) {
-		return;
-	}
+    if (s_pCachedSourceTVEdict == NULL || pInfo->m_pClientEnt != s_pCachedSourceTVEdict) {
+        return;
+    }
 
-	if (!pRecipientPlayer->IsSourceTV()) {
-		return;
-	}
-
-	if (g_pHLTVServer != NULL && CBaseServer::FromIHLTVServer(g_pHLTVServer)->GetNumClients() == 0) {
-		return;
-	}
+    if (g_pHLTVServer != NULL && CBaseServer::FromIHLTVServer(g_pHLTVServer)->GetNumClients() == 0) {
+        return;
+    }
 
 	int maxClients = playerhelpers->GetMaxClients();
 
