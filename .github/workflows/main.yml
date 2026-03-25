@@ -80,10 +80,9 @@ jobs:
       - name: Getting SteamWorks SDK
         uses: actions/checkout@v6
         with:
-          repository: shqke/steamworks-sdk
-          ref: v1.55
-          path: steamworks-sdk
-          token: ${{ secrets.STEAMWORKS_REPO_ACCESS_TOKEN }}
+            repository: ExperimentFailed/Steamworks-SDK
+            ref: v1.55
+            path: steamworks-sdk
           
       - name: Setting up Python
         uses: actions/setup-python@v6
